@@ -1,5 +1,5 @@
 \ ### DEBUG HELPERS ###
-false constant DEBUG
+true constant DEBUG
 true constant POPULATE?
 : BREAKPT DEBUG if 0 28 at-xy .s key drop then ;
 : BRK BREAKPT ;
