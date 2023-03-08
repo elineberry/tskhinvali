@@ -55,15 +55,20 @@ end-structure
 1 constant map-y-offset
 80 constant map-width
 21 constant map-height
-here 100 cells allot constant room-array
 map-width map-height * constant map-size
-map-size 5 * constant house-levels
-here house-levels allot constant map
-here house-levels allot constant visible
-here house-levels allot constant fov
-here house-levels units allot constant unit-array
-here house-levels items allot constant item-array
-here house-levels allot constant unit-move-queue
+
+255 constant max-rooms
+255 constant max-units
+255 constant max-items
+
+\ ### ARRAYS ###
+here 100 cells allot constant room-array					\ stores pointers to rooms
+here map-size allot constant map
+here map-size  allot constant visible
+here map-size  allot constant fov
+here max-units units allot constant unit-array
+here max-items items allot constant item-array
+here max-units cells allot constant unit-move-queue
 
 \ ### LEVEL GENERATION
 \ I think I can just generate this once and then transmogrify as time passes
@@ -80,6 +85,7 @@ here house-levels allot constant unit-move-queue
 \ create units in ramdom rooms 
 \ just have to link the staircases, or have them go to some random place
 \ doors are just units, they only appear in the room you're in or if it's vis
+\ staircases
 : center-x map-width 2 / ;
 : center-y map-height 2 / ;
 
@@ -290,13 +296,22 @@ false value wizard?
 			i room!! unloop exit 
 		then
 	loop ;
-: .map 
+: map@ ( x y -- char ) ;
+: map! ( char x y -- ) xy-to-n map c! ;
+' map! is 'map!
+: build-map 
 	100 0 do
 		i room@ 0<> if
 			i room@ dup r.z @ rogue.z = if .room else drop then
 		then
 	loop
 ;
+: is-visible? ( n -- flag ) true ;
+: .map map-size 0 do 
+	i is-visible? if	
+	i map + c@ else bl then 
+	i n-to-xy at-xy emit loop ;
+
 
 
 \ ### GAME LOOP ###
@@ -308,7 +323,7 @@ false value is-dead?
 : .message-line ;
 : .items ;
 : .units ;
-: .rogue ;
+: .rogue  rogue.x rogue.y at-xy [char] @ emit ;
 : update-ui .debug-line .status-line .message-line .map .items .units .rogue ;
 : update-ui'
 	\ write the updated map data to the map buffer
@@ -318,10 +333,12 @@ false value is-dead?
 ;
 : game-init 
 	1 to awakening 
+	center-x to rogue.x center-y to rogue.y
 	\ clear map, items, units arrays
 	\ build house
 	\ set rogue location
 	basement room!
+	build-map
 	true to is-playing? ;
 : game-loop
 	hide-cursor
