@@ -124,6 +124,12 @@ here max-units cells allot constant unit-move-queue
 	room r.w @ r@ r.w ! 
 	room r> ;
 
+: number-of-rooms-for-floor ( n -- )				\ It's a fibonnaci sequence
+	1 swap 0 do dup + loop ;
+	
+: create-rooms-for-floor ( n -- )						\ Stores them, only call once
+;
+
 \ ### STATE ###
 0 value turn
 0 value awakening
@@ -197,7 +203,9 @@ false value wizard?
 	.tab ." here: " here 12 .r
 	.tab ." depth: " depth . then ;
 
-
+\ : $presence-help " Presence is how much you can interact with the world
+		\ you can interact with, change, and move through the world.
+\ " ;
 : .help
 	page $title .formatted-title space $version type
 	CR CR
@@ -338,7 +346,6 @@ false value is-dead?
 	\ build house
 	\ set rogue location
 	basement room!
-	build-map
 	true to is-playing? ;
 : game-loop
 	hide-cursor
